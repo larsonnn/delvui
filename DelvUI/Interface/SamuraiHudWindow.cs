@@ -1,10 +1,15 @@
 ﻿using System;
 using System.Numerics;
-using Dalamud.Game.ClientState.Structs.JobGauge;
+using Dalamud.Data;
+using Dalamud.Game.ClientState;
+using Dalamud.Game.ClientState.JobGauge;
+using Dalamud.Game.ClientState.JobGauge.Types;
+using Dalamud.Game.ClientState.Objects;
+using Dalamud.Game.Gui;
 using Dalamud.Plugin;
 using ImGuiNET;
 
-namespace DelvUIPlugin.Interface {
+namespace DelvUI.Interface {
     public class SamuraiHudWindow : HudWindow {
 
         public override uint JobId => 34;
@@ -13,7 +18,25 @@ namespace DelvUIPlugin.Interface {
         private new int XOffset => 127;
         private new int YOffset => 467;
 
-        public SamuraiHudWindow(DalamudPluginInterface pluginInterface, PluginConfiguration pluginConfiguration) : base(pluginInterface, pluginConfiguration) { }
+        public SamuraiHudWindow(
+            ClientState clientState,
+            DalamudPluginInterface pluginInterface,
+            DataManager dataManager,
+            GameGui gameGui,
+            JobGauges jobGauges,
+            ObjectTable objectTable, 
+            PluginConfiguration pluginConfiguration,
+            TargetManager targetManager
+        ) : base(
+            clientState,
+            pluginInterface,
+            dataManager,
+            gameGui,
+            jobGauges,
+            objectTable,
+            pluginConfiguration,
+            targetManager
+        ) { }
 
         protected override void Draw(bool _) {
             DrawHealthBar();
@@ -27,7 +50,7 @@ namespace DelvUIPlugin.Interface {
 
         protected override void DrawPrimaryResourceBar()
         {
-            var gauge = PluginInterface.ClientState.JobGauges.Get<SAMGauge>();
+            var gauge = JobGauges.Get<SAMGauge>();
 
             const int yPadding = 3;
             var barWidth = BarWidth;
@@ -38,8 +61,8 @@ namespace DelvUIPlugin.Interface {
             var barSize = new Vector2(barWidth, BarHeight);
 
             // Kenki Gauge
-            var Kenki = Math.Min((int)gauge.Kenki, chunkSize);
-            var scale = (float)Kenki / chunkSize;
+            var kenki = Math.Min((int)gauge.Kenki, chunkSize);
+            var scale = (float)kenki / chunkSize;
             var drawList = ImGui.GetWindowDrawList();
             drawList.AddRectFilled(cursorPos, cursorPos + barSize, 0x88000000);
             drawList.AddRectFilledMultiColor(
@@ -54,7 +77,7 @@ namespace DelvUIPlugin.Interface {
         }
         
         private void DrawSenResourceBar() {
-            var gauge = PluginInterface.ClientState.JobGauges.Get<SAMGauge>();
+            var gauge = JobGauges.Get<SAMGauge>();
 
             const int xPadding = 3;
             const int numChunks = 3;
@@ -69,19 +92,19 @@ namespace DelvUIPlugin.Interface {
             
             // Setsu Bar
             cursorPos = new Vector2(cursorPos.X + xPadding + barWidth, cursorPos.Y);
-            if (gauge.HasSetsu()) drawList.AddRectFilled(cursorPos, cursorPos + barSize, 0xFFF7EA59);
+            if (gauge.HasSetsu) drawList.AddRectFilled(cursorPos, cursorPos + barSize, 0xFFF7EA59);
             else drawList.AddRectFilled(cursorPos, cursorPos + barSize, 0x88000000);
             drawList.AddRect(cursorPos, cursorPos + barSize, 0xFF000000);
 
             // Getsu Bar
             cursorPos = new Vector2(cursorPos.X + xPadding + barWidth, cursorPos.Y);
-            if (gauge.HasGetsu())drawList.AddRectFilled(cursorPos, cursorPos + barSize, 0xFFF77E59);
+            if (gauge.HasGetsu)drawList.AddRectFilled(cursorPos, cursorPos + barSize, 0xFFF77E59);
             else drawList.AddRectFilled(cursorPos, cursorPos + barSize, 0x88000000);
             drawList.AddRect(cursorPos, cursorPos + barSize, 0xFF000000);
 
             // Ka Bar
             cursorPos = new Vector2(cursorPos.X + xPadding + barWidth, cursorPos.Y);
-            if (gauge.HasKa())drawList.AddRectFilled(cursorPos, cursorPos + barSize, 0XFF5959F7);
+            if (gauge.HasKa)drawList.AddRectFilled(cursorPos, cursorPos + barSize, 0XFF5959F7);
             else drawList.AddRectFilled(cursorPos, cursorPos + barSize, 0x88000000);
             drawList.AddRect(cursorPos, cursorPos + barSize, 0xFF000000);
         }
@@ -89,7 +112,7 @@ namespace DelvUIPlugin.Interface {
 
         private void DrawMeditationResourceBar()
         {
-            var gauge = PluginInterface.ClientState.JobGauges.Get<SAMGauge>();
+            var gauge = JobGauges.Get<SAMGauge>();
 
             const int xPadding = 3;
             const int yPadding = 3;
